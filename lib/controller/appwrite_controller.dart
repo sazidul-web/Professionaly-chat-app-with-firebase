@@ -13,7 +13,7 @@ Account account = Account(client);
 final Databases databases = Databases(client);
 
 // Save Phone number to databae (Creating a new account)
-Future<bool> Savephonetodb(;
+Future<bool> Savephonetodb(
     {required String phoneno, required String userID}) async {
   try {
     final Response = await databases.createDocument(
