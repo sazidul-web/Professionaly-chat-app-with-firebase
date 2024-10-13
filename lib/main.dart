@@ -1,4 +1,6 @@
+import 'package:chatapp/controller/appwrite_controller.dart';
 import 'package:chatapp/viwes/HomePage.dart';
+import 'package:chatapp/viwes/Phonelogin.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
@@ -24,9 +26,39 @@ class MyApp extends StatelessWidget {
           ),
           routes: {
             // "/": (context) => Phonelogin(),
-            "/": (context) => HomePage(),
-            "home": (context) => HomePage(),
+            "/": (context) => ChackUserSession(),
+            "Login": (context) => Phonelogin(),
           }),
+    );
+  }
+}
+
+class ChackUserSession extends StatefulWidget {
+  @override
+  State<ChackUserSession> createState() => _ChackUserSessionState();
+}
+
+class _ChackUserSessionState extends State<ChackUserSession> {
+  @override
+  void initState() {
+    super.initState();
+    ChackSession().then((value) {
+      if (value) {
+        Navigator.pushReplacement(
+            context, MaterialPageRoute(builder: (context) => HomePage()));
+      } else {
+        Navigator.pushReplacement(
+            context, MaterialPageRoute(builder: (context) => Phonelogin()));
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: CircularProgressIndicator(),
+      ),
     );
   }
 }

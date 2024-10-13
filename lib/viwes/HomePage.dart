@@ -1,5 +1,7 @@
 import 'package:chatapp/constant/Colors.dart';
 import 'package:chatapp/viwes/Chat_page.dart';
+import 'package:chatapp/viwes/Profile.dart';
+import 'package:chatapp/viwes/Search_user.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
@@ -21,10 +23,16 @@ class _HomePageState extends State<HomePage> {
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20.sp),
         ),
         actions: [
-          CircleAvatar(
-              backgroundImage: Image(
-            image: AssetImage('assets/user.png'),
-          ).image)
+          GestureDetector(
+            onTap: () {
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => ProfilePage()));
+            },
+            child: CircleAvatar(
+                backgroundImage: Image(
+              image: AssetImage('assets/user.png'),
+            ).image),
+          )
         ],
       ),
       body: ListView.builder(
@@ -77,7 +85,10 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: () {
+          Navigator.push(
+              context, MaterialPageRoute(builder: (context) => UserSearch()));
+        },
         child: Icon(
           Icons.add,
           color: Colors.white,
