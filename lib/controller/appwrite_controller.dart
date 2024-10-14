@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:appwrite/appwrite.dart';
 import 'package:appwrite/models.dart';
+import 'package:chatapp/Models/userData.dart';
 
 Client client = Client()
     .setEndpoint('https://cloud.appwrite.io/v1')
@@ -11,7 +12,7 @@ const String db = '670b68ff002b9c8bc853';
 const String userCollection = '670b690c000f1a23ea5a';
 Account account = Account(client);
 final Databases databases = Databases(client);
-
+// for otp need
 // Save Phone number to databae (Creating a new account)
 Future<bool> Savephonetodb(
     {required String phoneno, required String userID}) async {
@@ -32,6 +33,7 @@ Future<bool> Savephonetodb(
   }
 }
 
+// for otp need
 // check whether phone number exist in DB or not
 Future<String> ChackPhoneNumber({required String phoneno}) async {
   try {
@@ -57,6 +59,7 @@ Future<String> ChackPhoneNumber({required String phoneno}) async {
   }
 }
 
+// for otp need
 // create a phone session , send otp to the phone number
 Future<String> createPhonesession({required String phone}) async {
   try {
@@ -80,6 +83,7 @@ Future<String> createPhonesession({required String phone}) async {
   }
 }
 
+// for otp need
 // Funtion login with OTP
 Future<bool> loginwithOTP({required String otp, required String userId}) async {
   try {
@@ -93,6 +97,7 @@ Future<bool> loginwithOTP({required String otp, required String userId}) async {
   }
 }
 
+// for otp need
 // to chack whater the session exist or not
 Future<bool> ChackSession() async {
   try {
@@ -101,5 +106,24 @@ Future<bool> ChackSession() async {
     return true;
   } catch (e) {
     return false;
+  }
+}
+
+// to logout the use and and delete session
+Future logoutuser() async {
+  await account.deleteSession(sessionId: "current");
+}
+
+// load userData ->>>>>>>>>>>>>>>>>>>>>userData
+Future<Userdata?> getUserDetails({required String userId}) async {
+  try {
+    final response = await databases.getDocument(
+        databaseId: db, collectionId: userCollection, documentId: userId);
+    print("Getting userdata");
+    print("${response.data}");
+    return Userdata.toMap(response.data);
+  } catch (e) {
+    print("Error in getting userdata ${e}");
+    return null;
   }
 }

@@ -1,3 +1,5 @@
+import 'package:chatapp/controller/appwrite_controller.dart';
+import 'package:chatapp/viwes/Phonelogin.dart';
 import 'package:chatapp/viwes/Update_profilePage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -55,6 +57,11 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
           Divider(),
           ListTile(
+            onTap: () {
+              logoutuser();
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => Phonelogin()));
+            },
             leading: Icon(Icons.logout_outlined),
             title: Text('LogOut'),
           ),

@@ -1,9 +1,12 @@
+import 'package:chatapp/Providers/user_data_provider.dart';
 import 'package:chatapp/constant/Colors.dart';
 import 'package:chatapp/controller/appwrite_controller.dart';
 import 'package:chatapp/viwes/HomePage.dart';
+import 'package:chatapp/viwes/Update_profilePage.dart';
 import 'package:country_code_picker/country_code_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:provider/provider.dart';
 
 class Phonelogin extends StatefulWidget {
   @override
@@ -21,8 +24,16 @@ class _PhoneloginState extends State<Phonelogin> {
     if (_formkey.currentState!.validate()) {
       loginwithOTP(otp: OTPvarificaionController.text, userId: userID)
           .then((value) {
-        Navigator.push(
-            context, MaterialPageRoute(builder: (context) => HomePage()));
+        if (value) {
+          Provider.of<UserDataProvider>(context, listen: false)
+              .setUserId(userID);
+          Provider.of<UserDataProvider>(context, listen: false).setUserPhone(
+              countryCode + PhoneNumberVarificationController.text);
+        }
+        // Navigator.push(context,
+        //     MaterialPageRoute(builder: (context) => UpdateProfilePage()));
+        Navigator.pushNamedAndRemoveUntil(context, "/update", (route) => false,
+            arguments: {"title": "add"});
       });
     } else {
       ScaffoldMessenger.of(context)
