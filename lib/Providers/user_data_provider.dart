@@ -22,8 +22,8 @@ class UserDataProvider extends ChangeNotifier {
     _userName = LocalSavedData.getUserName();
     _userProfilepic = LocalSavedData.getUserProfile();
     _userPhoneNumber = LocalSavedData.getUserPhone();
-
-    notifyListeners();
+    print("data load form local $_userId,$_userPhoneNumber,$_userName");
+    // notifyListeners();
   }
 
   // to lead the data form our appwrite database user collection ----->>>>>>>>>>>>>>>>> appwrite controller and userData funtion.

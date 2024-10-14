@@ -1,8 +1,10 @@
 import 'dart:async';
-
 import 'package:appwrite/appwrite.dart';
 import 'package:appwrite/models.dart';
 import 'package:chatapp/Models/userData.dart';
+import 'package:chatapp/Providers/user_data_provider.dart';
+import 'package:chatapp/main.dart';
+import 'package:provider/provider.dart';
 
 Client client = Client()
     .setEndpoint('https://cloud.appwrite.io/v1')
@@ -10,7 +12,9 @@ Client client = Client()
 
 const String db = '670b68ff002b9c8bc853';
 const String userCollection = '670b690c000f1a23ea5a';
+const String StoregBucket = '670ce544003d21242221';
 Account account = Account(client);
+final Storage storage = Storage(client);
 final Databases databases = Databases(client);
 // for otp need
 // Save Phone number to databae (Creating a new account)
@@ -125,5 +129,65 @@ Future<Userdata?> getUserDetails({required String userId}) async {
   } catch (e) {
     print("Error in getting userdata ${e}");
     return null;
+  }
+}
+
+// to update the user data
+Future<bool> updateDatauserdetails(String pic,
+    {required String userId, required String name}) async {
+  try {
+    final data = await databases.updateDocument(
+        databaseId: db,
+        collectionId: userCollection,
+        documentId: userId,
+        data: {"name": name, "Profile_pic": pic});
+    Provider.of<UserDataProvider>(navigatorkey.currentContext!, listen: false)
+        .setUserName(name);
+    Provider.of<UserDataProvider>(navigatorkey.currentContext!, listen: false)
+        .setUserProfile(pic);
+    print(data);
+    return true;
+  } on AppwriteException catch (e) {
+    print("Cannot save to db $e");
+    return false;
+  }
+}
+
+// upload and save images to storeg bucket (Create new image)
+Future<String?> saveImageToBucket({required InputFile image}) async {
+  try {
+    final responce = await storage.createFile(
+        bucketId: StoregBucket, fileId: ID.unique(), file: image);
+    print("The responce after save the bucket $responce");
+    return responce.$id;
+  } catch (e) {
+    print("Error on saving image to bucket :$e");
+    return null;
+  }
+}
+
+// update an image in bucket first delete then create new
+Future<String?> UpdateImageOnBacket(
+    {required String oldImageId, required InputFile image}) async {
+  try {
+    // to delete the old image
+    deleteimagefrombucket(oldImageId: oldImageId);
+    // create new image id
+    final newImage = saveImageToBucket(image: image);
+    return newImage;
+  } catch (e) {
+    print("Cannot update & delete image: $e");
+    return null;
+  }
+}
+
+// to only delete the image from storeg bucket
+Future<bool> deleteimagefrombucket({required String oldImageId}) async {
+  try {
+    await storage.deleteFile(bucketId: StoregBucket, fileId: oldImageId);
+    return true;
+  } catch (e) {
+    print("Cannot update & delete image: $e");
+    return false;
   }
 }
