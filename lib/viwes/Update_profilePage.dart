@@ -1,7 +1,9 @@
 import 'dart:io';
 
+import 'package:appwrite/appwrite.dart';
 import 'package:chatapp/Providers/user_data_provider.dart';
 import 'package:chatapp/constant/Colors.dart';
+import 'package:chatapp/controller/appwrite_controller.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -16,11 +18,17 @@ class _UpdateProfilePageState extends State<UpdateProfilePage> {
   TextEditingController _nameController = TextEditingController();
   TextEditingController _phoneController = TextEditingController();
   FilePickerResult? filePickerResult;
+  late String? imageID = "";
+  late String? userID = "";
+  final _namekey = GlobalKey<FormState>();
   @override
   void initState() {
     Future.delayed(Duration.zero, () {});
     // try to lead the data form local database
     Provider.of<UserDataProvider>(context, listen: false).loadDatafromLocal();
+    imageID =
+        Provider.of<UserDataProvider>(context, listen: false).getuserProfile;
+    userID = Provider.of<UserDataProvider>(context, listen: false).getuserId;
     super.initState();
   }
 
@@ -31,6 +39,39 @@ class _UpdateProfilePageState extends State<UpdateProfilePage> {
     setState(() {
       filePickerResult = result;
     });
+  }
+
+  // Upload user profile images and save it to bucket and database
+  Future UploadProfileImage() async {
+    try {
+      if (filePickerResult != null && filePickerResult!.files.isNotEmpty) {
+        PlatformFile file = filePickerResult!.files.first;
+        final fileByes = await File(file.path!).readAsBytes();
+        final inputfile =
+            InputFile.fromBytes(bytes: fileByes, filename: file.name);
+
+        // if images alrady exsits for the user profile or not
+        if (imageID != null && imageID != "") {
+          // then updated the images
+          await UpdateImageOnBacket(oldImageId: imageID!, image: inputfile)
+              .then((value) {
+            if (value != null) {
+              imageID = value;
+            }
+          });
+        } else {
+          await saveImageToBucket(image: inputfile).then((value) {
+            if (value != null) {
+              imageID = value;
+            }
+          });
+        }
+      } else {
+        print("Sumting want wrong");
+      }
+    } catch (e) {
+      print("error on uploading image $e");
+    }
   }
 
   @override
@@ -105,10 +146,18 @@ class _UpdateProfilePageState extends State<UpdateProfilePage> {
                 ),
                 margin: EdgeInsets.all(6.r),
                 padding: EdgeInsets.symmetric(horizontal: 8.r, vertical: 8.r),
-                child: TextFormField(
-                  controller: _nameController,
-                  decoration: InputDecoration(
-                      border: InputBorder.none, hintText: 'Enter your name'),
+                child: Form(
+                  key: _namekey,
+                  child: TextFormField(
+                    validator: (value) {
+                      if (value!.isEmpty) return "Cannot be empty";
+
+                      return null;
+                    },
+                    controller: _nameController,
+                    decoration: InputDecoration(
+                        border: InputBorder.none, hintText: 'Enter your name'),
+                  ),
                 ),
               ),
               Container(
