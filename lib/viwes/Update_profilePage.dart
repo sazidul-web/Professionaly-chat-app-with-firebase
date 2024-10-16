@@ -4,6 +4,7 @@ import 'package:appwrite/appwrite.dart';
 import 'package:chatapp/Providers/user_data_provider.dart';
 import 'package:chatapp/constant/Colors.dart';
 import 'package:chatapp/controller/appwrite_controller.dart';
+import 'package:chatapp/viwes/HomePage.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -20,7 +21,7 @@ class _UpdateProfilePageState extends State<UpdateProfilePage> {
   FilePickerResult? filePickerResult;
   late String? imageID = "";
   late String? userID = "";
-  final _namekey = GlobalKey<FormState>();
+  final namekey = GlobalKey<FormState>();
   @override
   void initState() {
     Future.delayed(Duration.zero, () {});
@@ -42,35 +43,34 @@ class _UpdateProfilePageState extends State<UpdateProfilePage> {
   }
 
   // Upload user profile images and save it to bucket and database
-  Future UploadProfileImage() async {
+  Future<void> UploadProfileImage() async {
     try {
       if (filePickerResult != null && filePickerResult!.files.isNotEmpty) {
         PlatformFile file = filePickerResult!.files.first;
-        final fileByes = await File(file.path!).readAsBytes();
-        final inputfile =
-            InputFile.fromBytes(bytes: fileByes, filename: file.name);
+        final fileBytes = await File(file.path!).readAsBytes();
+        final inputFile =
+            InputFile.fromBytes(bytes: fileBytes, filename: file.name);
 
-        // if images alrady exsits for the user profile or not
-        if (imageID != null && imageID != "") {
-          // then updated the images
-          await UpdateImageOnBacket(oldImageId: imageID!, image: inputfile)
-              .then((value) {
-            if (value != null) {
-              imageID = value;
-            }
-          });
+        // If an image already exists for the user profile, update it; otherwise, upload a new image
+        if (imageID != null && imageID!.isNotEmpty) {
+          // Update the existing image
+          final newImageId =
+              await UpdateImageOnBacket(oldImageId: imageID!, image: inputFile);
+          if (newImageId != null) {
+            imageID = newImageId; // Update image ID after a successful upload
+          }
         } else {
-          await saveImageToBucket(image: inputfile).then((value) {
-            if (value != null) {
-              imageID = value;
-            }
-          });
+          // Upload a new image if no image exists
+          final newImageId = await saveImageToBucket(image: inputFile);
+          if (newImageId != null) {
+            imageID = newImageId; // Update image ID after a successful upload
+          }
         }
       } else {
-        print("Sumting want wrong");
+        print("No file selected or filePickerResult is null.");
       }
     } catch (e) {
-      print("error on uploading image $e");
+      print("Error on uploading image: $e");
     }
   }
 
@@ -116,7 +116,11 @@ class _UpdateProfilePageState extends State<UpdateProfilePage> {
                       backgroundColor: Colors.grey.shade200,
                       backgroundImage: filePickerResult != null
                           ? FileImage(File(filePickerResult!.files.first.path!))
-                          : AssetImage('assets/user.png') as ImageProvider,
+                          : (value.getuserProfile != "" &&
+                                  value.getuserProfile != null
+                              ? NetworkImage(
+                                  "https://cloud.appwrite.io/v1/storage/buckets/662faabe001a20bb87c6/files/${value.getuserProfile}/view?project=662e8e5c002f2d77a17c&mode=admin")
+                              : null),
                     ),
                     Positioned(
                       bottom: 0,
@@ -147,7 +151,7 @@ class _UpdateProfilePageState extends State<UpdateProfilePage> {
                 margin: EdgeInsets.all(6.r),
                 padding: EdgeInsets.symmetric(horizontal: 8.r, vertical: 8.r),
                 child: Form(
-                  key: _namekey,
+                  key: namekey,
                   child: TextFormField(
                     validator: (value) {
                       if (value!.isEmpty) return "Cannot be empty";
@@ -185,8 +189,31 @@ class _UpdateProfilePageState extends State<UpdateProfilePage> {
                     height: 25.h,
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () {},
-                      child: Text("Update"),
+                      onPressed: () async {
+                        if (namekey.currentState!.validate()) {
+                          // Upload the profile image if a file is selected
+                          if (filePickerResult != null) {
+                            await UploadProfileImage(); // Make sure to await this
+                          }
+
+                          // Save the data to the database collection (user details)
+                          await updateDatauserdetails(
+                            imageID ??
+                                "", // Use the updated imageID after uploading
+                            userId: userID!,
+                            name: _nameController.text,
+                          );
+
+                          // Navigate to the Home Page
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => HomePage()),
+                          );
+                        }
+                      },
+                      child: Text(datapassed["title"] == "edit"
+                          ? "Update"
+                          : "Continue"),
                       style: ElevatedButton.styleFrom(
                           backgroundColor: kprimarycolor,
                           foregroundColor: ksecondarycolor),

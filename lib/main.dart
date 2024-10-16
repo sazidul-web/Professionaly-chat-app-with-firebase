@@ -25,7 +25,7 @@ class MyApp extends StatelessWidget {
           ChangeNotifierProvider(create: (context) => UserDataProvider())
         ],
         child: MaterialApp(
-        navigatorKey: navigatorkey,
+            navigatorKey: navigatorkey,
             debugShowCheckedModeBanner: false,
             title: "First Chat",
             theme: ThemeData(

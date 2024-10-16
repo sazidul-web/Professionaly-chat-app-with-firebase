@@ -154,14 +154,28 @@ Future<bool> updateDatauserdetails(String pic,
 }
 
 // upload and save images to storeg bucket (Create new image)
+// Future<String?> saveImageToBucket({required InputFile image}) async {
+//   try {
+//     final responce = await storage.createFile(
+//         bucketId: StoregBucket, fileId: ID.unique(), file: image);
+//     print("The responce after save the bucket $responce");
+//     return responce.$id;
+//   } catch (e) {
+//     print("Error on saving image to bucket :$e");
+//     return null;
+//   }
+// }
 Future<String?> saveImageToBucket({required InputFile image}) async {
   try {
-    final responce = await storage.createFile(
-        bucketId: StoregBucket, fileId: ID.unique(), file: image);
-    print("The responce after save the bucket $responce");
-    return responce.$id;
+    final response = await storage.createFile(
+      bucketId: StoregBucket,
+      fileId: ID.unique(),
+      file: image,
+    );
+    print("File uploaded successfully. File ID: ${response.$id}");
+    return response.$id;
   } catch (e) {
-    print("Error on saving image to bucket :$e");
+    print("Error on saving image to bucket: $e");
     return null;
   }
 }
