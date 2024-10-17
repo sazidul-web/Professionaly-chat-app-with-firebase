@@ -16,4 +16,16 @@ class MassageModels {
     this.isSeenByReceiver,
     this.isImage,
   });
+
+  // that will convart document model to message model
+  factory MassageModels.formMap(Map<String, dynamic> map) {
+    return MassageModels(
+      message: map["message"],
+      sender: map["senderId"],
+      reciver: map["RecivedId"],
+      timestamp: map["timestramp"],
+      isSeenByReceiver: map["isSeenByReciver"],
+      isImage: map["isImages"],
+    );
+  }
 }

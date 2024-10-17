@@ -1,6 +1,6 @@
 import 'dart:io';
-
 import 'package:appwrite/appwrite.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:chatapp/Providers/user_data_provider.dart';
 import 'package:chatapp/constant/Colors.dart';
 import 'package:chatapp/controller/appwrite_controller.dart';
@@ -30,6 +30,7 @@ class _UpdateProfilePageState extends State<UpdateProfilePage> {
     imageID =
         Provider.of<UserDataProvider>(context, listen: false).getuserProfile;
     userID = Provider.of<UserDataProvider>(context, listen: false).getuserId;
+    Provider.of<UserDataProvider>(context, listen: false);
     super.initState();
   }
 
@@ -115,12 +116,15 @@ class _UpdateProfilePageState extends State<UpdateProfilePage> {
                       radius: 120,
                       backgroundColor: Colors.grey.shade200,
                       backgroundImage: filePickerResult != null
-                          ? FileImage(File(filePickerResult!.files.first.path!))
-                          : (value.getuserProfile != "" &&
+                          ? Image(
+                                  image: FileImage(File(
+                                      filePickerResult!.files.first.path!)))
+                              .image
+                          : value.getuserProfile != "" &&
                                   value.getuserProfile != null
-                              ? NetworkImage(
-                                  "https://cloud.appwrite.io/v1/storage/buckets/662faabe001a20bb87c6/files/${value.getuserProfile}/view?project=662e8e5c002f2d77a17c&mode=admin")
-                              : null),
+                              ? CachedNetworkImageProvider(
+                                  "https://cloud.appwrite.io/v1/storage/buckets/670ce544003d21242221/files/${value.getuserProfile}/view?project=670b65b9001728ab8104&project=670b65b9001728ab8104&mode=admin")
+                              : null,
                     ),
                     Positioned(
                       bottom: 0,

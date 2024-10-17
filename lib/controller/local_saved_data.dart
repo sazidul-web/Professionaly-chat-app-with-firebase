@@ -48,8 +48,8 @@ class LocalSavedData {
   }
 
   // clear all the save data
-  static clearalldata() {
-    preferences!.clear();
+  static clearalldata()async {
+    final bool data=await preferences!.clear();
     print('Clear all data from local');
   }
 }

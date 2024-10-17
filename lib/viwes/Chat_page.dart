@@ -1,4 +1,5 @@
 import 'package:chatapp/Models/Massage_models.dart';
+import 'package:chatapp/Models/userData.dart';
 import 'package:chatapp/constant/Chatmassage.dart';
 import 'package:chatapp/constant/Colors.dart';
 import 'package:flutter/material.dart';
@@ -41,6 +42,11 @@ class _ChatPageState extends State<ChatPage> {
   ];
   @override
   Widget build(BuildContext context) {
+    // final arguments = ModalRoute.of(context)!.settings.arguments;
+    // if (arguments is Userdata) {
+    //   Userdata reciver = arguments;
+    // }
+    Userdata reciver = ModalRoute.of(context)!.settings.arguments as Userdata;
     return Scaffold(
       appBar: AppBar(
         leading: GestureDetector(
@@ -67,14 +73,14 @@ class _ChatPageState extends State<ChatPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Other user',
+                  reciver.name!,
                   style: TextStyle(
                       color: Colors.black,
                       fontSize: 16.sp,
                       fontWeight: FontWeight.w500),
                 ),
                 Text(
-                  'Online',
+                  reciver.isOnline! == true ? "Online" : "Offline",
                   style: TextStyle(
                       fontSize: 11.sp,
                       color: Colors.black,

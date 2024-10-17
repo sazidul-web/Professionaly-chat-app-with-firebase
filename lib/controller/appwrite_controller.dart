@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:appwrite/appwrite.dart';
 import 'package:appwrite/models.dart';
+import 'package:chatapp/Models/ChatDataModel.dart';
+import 'package:chatapp/Models/Massage_models.dart';
 import 'package:chatapp/Models/userData.dart';
 import 'package:chatapp/Providers/user_data_provider.dart';
 import 'package:chatapp/main.dart';
@@ -12,6 +14,7 @@ Client client = Client()
 
 const String db = '670b68ff002b9c8bc853';
 const String userCollection = '670b690c000f1a23ea5a';
+const String chatCollection = '6710ad56002356724f8f';
 const String StoregBucket = '670ce544003d21242221';
 Account account = Account(client);
 final Storage storage = Storage(client);
@@ -203,5 +206,102 @@ Future<bool> deleteimagefrombucket({required String oldImageId}) async {
   } catch (e) {
     print("Cannot update & delete image: $e");
     return false;
+  }
+}
+
+// to search all the users from the database
+Future<DocumentList?> searchUsers(
+    {required String searchItem, required String userId}) async {
+  try {
+    final DocumentList users = await databases.listDocuments(
+        databaseId: db,
+        collectionId: userCollection,
+        queries: [
+          Query.search("Phone_no", searchItem),
+          Query.notEqual("userID", userId)
+        ]);
+
+    print("total match users ${users.total}");
+    return users;
+  } catch (e) {
+    print("error on search users :$e");
+    return null;
+  }
+}
+
+// create new chat massage and save to database
+Future createNewChat({
+  required String message,
+  required String senderId,
+  required String reciverid,
+  required bool isImage,
+}) async {
+  try {
+    final msg = await databases.createDocument(
+        databaseId: db,
+        collectionId: chatCollection,
+        documentId: ID.unique(),
+        data: {
+          "message": message,
+          "senderId": senderId,
+          "RecivedId": reciverid,
+          "timestramp": DateTime.now().toIso8601String(),
+          "isSeenByReciver": false,
+          "isImages": isImage,
+          "userData": [senderId, reciverid],
+        });
+    print("message sent");
+    return true;
+  } catch (e) {
+    print("message sent faild $e");
+    return false;
+  }
+}
+
+// to list all the chats belogin to the current user
+Future<Map<String, List<ChatDataModel>>?> currentuserChats(
+    String userId) async {
+  try {
+    var results = await databases
+        .listDocuments(databaseId: db, collectionId: chatCollection, queries: [
+      Query.or(
+          [Query.equal("senderId", userId), Query.equal("RecivedId", userId)]),
+      Query.orderDesc("timestramp"),
+    ]);
+    final DocumentList chatdocumentslist = results;
+    print(
+        "Chat Documents${chatdocumentslist.total} and document${chatdocumentslist.documents.length}");
+    Map<String, List<ChatDataModel>> chat = {};
+    if (chatdocumentslist.documents.isNotEmpty) {
+      for (var i = 0; i < chatdocumentslist.documents.length; i++) {
+        var doc = chatdocumentslist.documents[i];
+        String sender = doc.data["senderId"];
+        String reciver = doc.data["RecivedId"];
+        MassageModels massage = MassageModels.formMap(doc.data);
+        List<Userdata> users = [];
+        for (var users in doc.data["userData"]) {
+          users.add(Userdata.toMap(users));
+        }
+        String key = (sender == userId) ? reciver : sender;
+        if (chat[key] == null) {
+          chat[key] = [];
+        }
+        chat[key]!.add(ChatDataModel(message: massage, users: users));
+      }
+    }
+    return chat;
+  } catch (e) {
+    print('error in reading current users chats ${e}');
+    return null;
+  }
+}
+
+// to delete the chat from database collection
+Future deletecurrentuserchat({required String chatId}) async {
+  try {
+    await databases.deleteDocument(
+        databaseId: db, collectionId: chatCollection, documentId: chatId);
+  } catch (e) {
+    print("error an deleting chat message$e");
   }
 }
